@@ -1,0 +1,10 @@
+# This set of scripts is designed to populate the MegaQC instance on {prod_server} that serves as the longitudinal QC monitoring system for East Genomic GLH.
+
+# The system works by a series of cron jobs on the server first running collect_jsons.sh to download all new multiqc json files, then uploading those reports
+# to the MegaQC database according to instrument used. Each instrument (sequencer) is associated with a user account on MegaQC, allowing the data dashboards
+# to filter the results based on what instrument was used.
+
+# Change JSONPATH in both scripts to the agreed location for storing the multiqc jsons.
+
+# Make sure sqlite is installed. If just starting out (database does not exist), create it with the command:
+# sqlite3 MegaQC_Uploads.sqlite "CREATE TABLE megaQC_jsons ( ID INTEGER PRIMARY KEY AUTOINCREMENT, Runfolder varchar(30), DNAnexus_fileID varchar(30), Uploaded bit );"
