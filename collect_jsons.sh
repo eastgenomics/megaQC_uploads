@@ -24,34 +24,28 @@ download_files () {
         for j in $(dx find data --name "multiqc_data.json" --project $projectID); do
             dirName=$(printf $j | awk -F " " '{print $6}' | awk -F "/" '{print $6}')
             fileID=$(printf $j | awk -F " " '{print $7}' | tr -d '()')
-            # INSERT CHECK for previous uploads (to prevent repeated downloads = cost)
-            mkdir -p $JSONPATH/$1/$projectName/$dirName; dx download $fileID -o $JSONPATH/$1/$projectName/$dirName
-            sqlite3 MegaQC_Uploads.sqlite "INSERT INTO megaQC_jsons VALUES ($projectName, $fileID, '0');"
-
+            # Check for previous uploads (to prevent repeated downloads = cost)
+            if [ $(sqlite3 MegaQC_Uploads.sqlite "SELECT EXISTS(SELECT 1 FROM megaQC_jsons WHERE DNAnexus_fileID=$fileID LIMIT 1);") -eq 0 ]; then 
+                mkdir -p $JSONPATH/$2/$projectName/$dirName; dx download $fileID -o $JSONPATH/$2/$projectName/$dirName
+                json=$(ls $JSONPATH/$2/$projectName/$dirName) #THIS WON'T WORK IF MULTIPLE!! JUST A PLACEHOLDER
+                # Check JSON to see if it's a proper run (i.e. more than 5 samples - threshold set by policy)
+                if [ $(jq ''[.[]]'[2][0] | length' $json) -gt 5 ]; then
+                    sqlite3 MegaQC_Uploads.sqlite "INSERT INTO megaQC_jsons (Runfolder, DNAnexus_fileID, Uploaded) VALUES ($projectName, $fileID, '0');"
+                fi
+            fi
         done
     done
 }
 
 
-# block for myeloid (project name suffix is MYE)
-download_files MYE
+# download myeloid files (project name suffix is MYE)
+download_files 002_*_MYE_* MYELOID
 
-# block for FH (project name suffix is FHC)
-download_files FHC
+# download FH files (project name suffix is FHC)
+download_files 002_*_FHC_* FH
 
-# block for WES (project name suffix is TWE)
-download_files TWE
+# download WES files (project name suffix is TWE)
+download_files 002_*_TWE_* WES
 
-# this block downloads gemini/TSOE reports (and hopefully nothing else) - follows different pattern so function above not used.
-for i in $(dx find projects --name "002_*_clinicalgenetics"); do
-    projectID=$(printf $i | awk -F " " '{print $1}')
-    projectName=$(printf $i | awk -F " " '{print $3}')
-    for j in $(dx find data --name "multiqc_data.json" --project $projectID); do
-        dirName=$(printf $j | awk -F " " '{print $6}' | awk -F "/" '{print $6}')
-        fileID=$(printf $j | awk -F " " '{print $7}' | tr -d '()')
-        # INSERT CHECK for previous uploads (to prevent repeated downloads = cost)
-        mkdir -p $JSONPATH/TSOE/$projectName/$dirName; dx download $fileID -o $JSONPATH/TSOE/$projectName/$dirName
-        sqlite3 MegaQC_Uploads.sqlite "INSERT INTO megaQC_jsons VALUES ($projectName, $fileID, '0');"
-
-    done
-done
+# download WES files (project name has no suffix)
+download_files 002_*_clinicalgenetics TSOE
