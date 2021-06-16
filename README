@@ -8,3 +8,10 @@
 
 # Make sure sqlite is installed. If just starting out (database does not exist), create it with the command:
 # sqlite3 MegaQC_Uploads.sqlite "CREATE TABLE megaQC_jsons ( ID INTEGER PRIMARY KEY, Runfolder varchar(30), DNAnexus_fileID varchar(30), Uploaded bit );"
+
+
+Requirements:
+- jq (for reading json files)
+- sqlite
+- megaqc (obviously)
+- dx-toolkit
