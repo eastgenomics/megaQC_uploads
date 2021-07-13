@@ -11,20 +11,23 @@ INSTRUMENT=$1
 
 # Directory where JSONS are saved (policy)
 #JSONPATH=/MegaQC-jsons
-JSONPATH=~/Dev/megaQC/data
+JSONPATH=/home/chris/Dev/MegaQC-jsons
 
 
 # need upload block for each assay and each instrument (to allow for different upload user & filtering in megaqc dashboards)
-INSTRUMENT_FOLDERS=$JSONPATH/*_${INSTRUMENT}_*/*/
+INSTRUMENT_FOLDERS=$JSONPATH/*/*_${INSTRUMENT}_*/*/
 
-
+# look in separate area so only complete downloads are used
 for runfolder in $INSTRUMENT_FOLDERS; do
-    dir=$(basename $report)
     for report in $(find $runfolder -name '*.json'); do
+        dir=$(basename $report)
+        echo Runfolder - $dir
         # Upload report to MegaQC
+        echo 'Uploading to MegaQC'
         megaqc upload $report
         # Update upload database to show file as uploaded.
-        sqlite3 MegaQC_Uploads.sqlite "UPDATE megaQC_jsons SET Uploaded=1 WHERE Runfolder=$dir;"
+        echo 'Updating upload database'
+        sqlite3 MegaQC_Uploads.sqlite "UPDATE megaQC_jsons SET Uploaded=1 WHERE Runfolder=\"$dir\";"
     done
 done
 
