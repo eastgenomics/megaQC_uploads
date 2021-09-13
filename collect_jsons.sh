@@ -12,6 +12,8 @@ IFS=$'\n'
 # Directory to save downloaded JSON files into. Change according to policy.
 JSONPATH=/home/chris/Dev/MegaQC-jsons
 
+touch /home/chris/megaUp.log
+echo $(date) >> /home/chris/megaUp.log
 
 # Function to do the work since we're doing basically the same thing for each assay.
 download_files () {
